@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>قراءة بيانات بطاقات المصرفية EMV</title>
+</head>
+<body>
+    <!-- تحقق من متوافقية الهواتف والمتصفحات -->
+    <!-- تقنية NFC قد لا تكون مدعومة على جميع الهواتف أو المتصفحات -->
+    <!-- يجب عليك التحقق من متوافقية الجهاز والمتصفح قبل البدء في تطوير التطبيق -->
+    <button id="startNFC">بدء NFC</button>
+    <div id="cardData"></div>
+
+    <script>
+        const startButton = document.getElementById('startNFC');
+        const cardDataDiv = document.getElementById('cardData');
+
+        async function initNFC() {
+            // 1. تحقق من متوافقية الهواتف والمتصفحات
+            if ('NFCReader' in window) {
+                startButton.style.display = 'block';
+                startButton.addEventListener('click', startNFC);
+            } else {
+                startButton.style.display = 'none';
+                cardDataDiv.textContent = 'الهاتف غير مدعوم لقراءة NFC.';
+            }
+        }
+
+        async function startNFC() {
+            try {
+                const nfcPermission = await navigator.permissions.query({ name: 'nfc' });
+                if (nfcPermission.state === 'granted') {
+                    const nfc = new NFCReader();
+                    await nfc.scan();
+
+                    // 2. تفاصيل EMV وبروتوكول التفاعل
+                    nfc.addEventListener('reading', async ({ message }) => {
+                        const cardData = message.records[0].data;
+                        cardDataDiv.textContent = `بيانات البطاقة: ${cardData}`;
+                        await nfc.stop();
+                    });
+
+                } else {
+                    console.log('الوصول إلى NFC غير مسموح به.');
+                }
+            } catch (error) {
+                console.error('حدث خطأ: ', error);
+            }
+        }
+
+        // تحسين أداء الصفحة وزمن استجابتها
+        window.addEventListener('load', initNFC);
+    </script>
+</body>
+  </html>
+  
